@@ -1,0 +1,22 @@
+node_modules/
+dist/
+dist-ssr/
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editor & OS
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Test coverage
+coverage/
