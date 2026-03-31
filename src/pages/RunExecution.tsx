@@ -214,8 +214,8 @@ export default function RunExecution() {
                           </Space>
                         </div>
 
-                        <Space direction="vertical" align="end" style={{ minWidth: 220 }}>
-                          <Space>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
+                          <Space wrap>
                             {(['pass', 'fail', 'blocked', 'skipped'] as TestStatus[]).map(s => {
                               const sc = STATUS_CONFIG[s]
                               return (
@@ -231,25 +231,29 @@ export default function RunExecution() {
                               )
                             })}
                           </Space>
-                          <Space.Compact style={{ width: '100%' }}>
+                          <div>
+                            <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                              Notas / observaciones
+                            </Typography.Text>
                             <Input.TextArea
-                              placeholder="Comentario (opcional)"
+                              placeholder="Describí el problema, el comportamiento observado, pasos para reproducirlo..."
                               value={localComment}
                               onChange={e => setComments(prev => ({ ...prev, [result.id]: e.target.value }))}
-                              rows={2}
-                              style={{ fontSize: 12 }}
+                              rows={4}
+                              style={{ fontSize: 13, resize: 'vertical' }}
                             />
-                          </Space.Compact>
+                          </div>
                           {comments[result.id] !== undefined && comments[result.id] !== (result.comment ?? '') && (
                             <Button
                               size="small"
                               loading={savingComment === result.id}
                               onClick={() => saveComment(result.id)}
+                              style={{ alignSelf: 'flex-end' }}
                             >
-                              Guardar comentario
+                              Guardar nota
                             </Button>
                           )}
-                        </Space>
+                        </div>
                       </div>
                     </Card>
                   )

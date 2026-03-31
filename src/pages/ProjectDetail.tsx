@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Tabs, Typography, Button, Space, Tag, Card, Collapse, List,
@@ -35,6 +35,8 @@ async function fetchProject(id: string) {
 export default function ProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') ?? 'cases'
   const qc = useQueryClient()
   const [filterRole, setFilterRole] = useState<string | null>(null)
   const [storyModal, setStoryModal] = useState(false)
@@ -173,7 +175,8 @@ export default function ProjectDetail() {
       </div>
 
       <Tabs
-        defaultActiveKey="cases"
+        activeKey={activeTab}
+        onChange={key => setSearchParams({ tab: key })}
         items={[
           {
             key: 'cases',

@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Menu, Button, Typography, Space, Spin } from 'antd'
-import { FolderOutlined, LogoutOutlined, BugOutlined, AppstoreOutlined } from '@ant-design/icons'
+import { LogoutOutlined, BugOutlined, BarChartOutlined, FileTextOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { Project } from '../lib/types'
@@ -19,59 +19,80 @@ export default function AppLayout() {
 
   const { data: projects, isLoading } = useQuery({ queryKey: ['projects'], queryFn: fetchProjects })
 
-  // Derive selected keys from current path
+  // Derive active keys from URL
   const projectIdMatch = location.pathname.match(/\/projects\/([^/]+)/)
   const currentProjectId = projectIdMatch?.[1]
-  const selectedKeys = currentProjectId ? [`project-${currentProjectId}`] : ['all-projects']
-  const openKeys = currentProjectId ? ['projects-group'] : []
+  const isRunPath = location.pathname.includes('/run/')
+  const tabParam = new URLSearchParams(location.search).get('tab')
+
+  let selectedKeys: string[] = ['reports']
+  if (location.pathname === '/projects') selectedKeys = ['all-projects']
+  else if (currentProjectId) {
+    if (isRunPath || tabParam === 'runs') selectedKeys = [`p-${currentProjectId}-runs`]
+    else selectedKeys = [`p-${currentProjectId}-cases`]
+  }
+
+  const openKeys = currentProjectId ? [`p-${currentProjectId}`] : []
+
+  const projectChildren = isLoading
+    ? [{ key: 'loading', label: <Spin size="small" />, disabled: true }]
+    : !projects?.length
+      ? [{ key: 'empty', label: <span style={{ opacity: 0.5, fontSize: 12 }}>Sin proyectos</span>, disabled: true }]
+      : projects.map(p => ({
+          key: `p-${p.id}`,
+          label: <span title={p.name}>{p.name.length > 18 ? `${p.name.slice(0, 18)}…` : p.name}</span>,
+          children: [
+            {
+              key: `p-${p.id}-cases`,
+              icon: <FileTextOutlined />,
+              label: 'Casos de test',
+              onClick: () => navigate(`/projects/${p.id}?tab=cases`),
+            },
+            {
+              key: `p-${p.id}-runs`,
+              icon: <PlayCircleOutlined />,
+              label: 'Test Runs',
+              onClick: () => navigate(`/projects/${p.id}?tab=runs`),
+            },
+          ],
+        }))
 
   const menuItems = [
     {
-      key: 'all-projects',
-      icon: <AppstoreOutlined />,
-      label: 'Todos los proyectos',
-      onClick: () => navigate('/projects'),
+      key: 'reports',
+      icon: <BarChartOutlined />,
+      label: 'Reportes globales',
+      onClick: () => navigate('/reports'),
     },
+    { type: 'divider' as const },
     {
-      key: 'projects-group',
-      icon: <FolderOutlined />,
-      label: 'Proyectos',
-      children: isLoading
-        ? [{ key: 'loading', label: <Spin size="small" />, disabled: true }]
-        : !projects?.length
-          ? [{ key: 'empty', label: <span style={{ opacity: 0.5, fontSize: 12 }}>Sin proyectos</span>, disabled: true }]
-          : projects.map(p => ({
-              key: `project-${p.id}`,
-              label: (
-                <span style={{ fontSize: 13 }} title={p.name}>
-                  {p.name.length > 20 ? `${p.name.slice(0, 20)}…` : p.name}
-                </span>
-              ),
-              onClick: () => navigate(`/projects/${p.id}`),
-            })),
+      type: 'group' as const,
+      label: <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.5 }}>Proyectos</span>,
+      children: projectChildren,
     },
   ]
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
-        width={230}
+        width={240}
         style={{ background: '#1e1b4b' }}
         breakpoint="lg"
         collapsedWidth="0"
       >
-        <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div
+          style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
+          onClick={() => navigate('/projects')}
+        >
           <Space>
             <BugOutlined style={{ color: '#a5b4fc', fontSize: 20 }} />
-            <Typography.Text strong style={{ color: '#fff', fontSize: 16 }}>
-              Test Manager
-            </Typography.Text>
+            <Typography.Text strong style={{ color: '#fff', fontSize: 16 }}>Test Manager</Typography.Text>
           </Space>
         </div>
         <Menu
           mode="inline"
           selectedKeys={selectedKeys}
-          defaultOpenKeys={['projects-group']}
+          defaultOpenKeys={openKeys}
           style={{ background: 'transparent', border: 'none', marginTop: 8 }}
           theme="dark"
           items={menuItems}
@@ -79,11 +100,7 @@ export default function AppLayout() {
       </Sider>
       <Layout>
         <Header style={{ background: '#fff', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderBottom: '1px solid #f0f0f0' }}>
-          <Button
-            icon={<LogoutOutlined />}
-            type="text"
-            onClick={() => supabase.auth.signOut()}
-          >
+          <Button icon={<LogoutOutlined />} type="text" onClick={() => supabase.auth.signOut()}>
             Salir
           </Button>
         </Header>

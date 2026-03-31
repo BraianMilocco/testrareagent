@@ -7,6 +7,7 @@ import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import RunExecution from './pages/RunExecution'
 import RunReport from './pages/RunReport'
+import Reports from './pages/Reports'
 import AppLayout from './components/AppLayout'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
@@ -36,7 +37,8 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/projects" replace />} />
+          <Route index element={<Navigate to="/reports" replace />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/projects/:projectId/run/:runId" element={<RunExecution />} />
